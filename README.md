@@ -1,96 +1,105 @@
-# OpenAI Whatsapp Chatbot
+<div align="center">
+  <h1>📱 OpenAI WhatsApp Chatbot</h1>
+  <p><strong>A powerful, context-aware Flask conversational API bridging WhatsApp (via Twilio) and LLMs (via Gemini/OpenAI endpoints)</strong></p>
+</div>
 
-A Flask-based conversational API that takes text input and returns
-responses using an LLM via the OpenRouter API. It supports multiple users
-and maintains conversation memory per user, allowing context-aware
-interactions.
+<br/>
 
-## What I learned
+## 🌟 Overview
 
-* How to use environment variables with `.env`
-* What an API is and how API keys work
-* How to integrate the OpenAI library
-* How conversation memory is implemented in a chatbot
-* How to save data in a JSON file
-* How to build APIs using Flask
-* Understanding REST APIs
-* Difference between GET and POST requests
-* How decorators work in Flask
-* What is railway and how to deploy the website
-* How to work on Twilio website and what is TwiML
-* What is Twilio Account SID and Twilio Auth TOKEN
-* How to convert Python data to JSON and then to bytes for file download
+This project is a fully functional, production-ready WhatsApp chatbot backend. It exposes a Flask-based REST API that accepts user messages (both directly via API and via Twilio WhatsApp webhooks) and generates intelligent responses using Large Language Models. 
 
-## How to run
+The bot is designed with **memory**, meaning it retains the conversation context for each unique user, enabling human-like, seamless, and context-aware interactions.
 
-1. Clone the repository
-2. Install dependencies:
-   pip install openai python-dotenv flask twilio
-3. Create a `.env` file and add your credentials:
-   API_KEY=your_openrouter_key_here
-   TWILIO_ACCOUNT_SID=your_sid_here
-   TWILIO_AUTH_TOKEN=your_token_here
-   TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
-4. Run in terminal:
-   python app.py
-5. Test API routes using Thunder Client or Postman
-6. For WhatsApp — connect Twilio sandbox and set webhook URL to:
-   http://localhost:5000/whatsapp (local)
-   or your Railway URL (production)
-7. To receive messages — someone must message your Twilio number first
-8. To send messages proactively — use the /send-whatsapp route
+### ✨ Key Features
+- **WhatsApp Integration:** Native integration with the Twilio WhatsApp API for seamless messaging.
+- **Context-Aware Memory:** Maintains a conversation history dictionary so the AI remembers what was said earlier in the chat.
+- **LLM Compatibility:** Powered by the OpenAI Python SDK pointing to Google's highly efficient Gemini API compatible endpoints.
+- **Role-Based Prompts:** Easily switch behavior (e.g., Coaching Assistant) by utilizing System Prompts.
+- **Conversation Management:** Export user chat histories directly into JSON files or clear them dynamically.
+- **Deployment Ready:** Ships with a `Procfile` configured for `gunicorn`, ready to be deployed on platforms like Railway, Render, or Heroku.
 
-## Routes
+---
 
-### 1. `/`
-* This is Home Route
+## 🛠️ Tech Stack
 
-### 2. `/chat`
+- **Backend Framework:** Python & Flask
+- **AI Integration:** OpenAI Python SDK & Google Gemini (gemini-1.5-flash)
+- **WhatsApp API:** Twilio
+- **Environment Management:** python-dotenv
+- **Production Server:** Gunicorn
 
-* Method: POST
-* Description: Sends user message and receives chatbot response
+---
 
-### 3. `/whatsapp`
-* Method: POST
-* Description: Sends user message through whatsapp and give response to whatsapp itself with few seconds
+## 🚀 Getting Started
 
-### 4. `/history/<user_id>`
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd chat_bot
+```
 
-* Method: GET
-* Description: Returns conversation history for a user
+### 2. Install dependencies
+Ensure you have Python installed, then run:
+```bash
+pip install -r requirements.txt
+```
 
-### 5. `/clear/<user_id>`
+### 3. Set up your Environment Variables
+Create a file named `.env` in the root of your folder and add your credentials:
+```ini
+# Google Gemini API Key (Accessible via Google AI Studio)
+API_KEY=your_gemini_api_key_here
 
-* Method: POST
-* Description: It clear the conversation history 
+# Twilio Console Credentials
+TWILIO_ACCOUNT_SID=your_twilio_sid_here
+TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
 
-### 6. `/analytics/<user_id>`
+# Twilio Sandbox Number (Must include the 'whatsapp:' prefix)
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+```
 
-* Method: GET
-* Description: Give all the message information for paricular user
+### 4. Run the Application
+Start the Flask development server:
+```bash
+python app.py
+```
+*Your API will be running on `http://localhost:8080` (or `5000`).*
 
-### 7. `/analytics`
+---
 
-* Method: GET
-* Description: Give all the message information for all user
+## 📞 Connecting to WhatsApp (Twilio Sandbox)
 
-### 8. `/export/<user_id>`
+1. Sign up for a [Twilio Account](https://www.twilio.com/) and navigate to **Messaging > Try it out > Send a WhatsApp message**.
+2. Connect your personal WhatsApp to the sandbox by sending the provided join code.
+3. In Twilio, configure the **Sandbox Webhook URL** for incoming messages:
+   - **For local testing:** Use a tool like [ngrok](https://ngrok.com/) to expose your local port (`ngrok http 8080`) and set your webhook to `https://<your-ngrok-url>/whatsapp`.
+   - **For production:** Use your deployed domain (e.g., `https://your-railway-app.up.railway.app/whatsapp`).
 
-* Method: GET
-* Description: Give access to dowload the chat.
+---
 
-### 9. `/whatsapp_send`
+## 🛣️ API Endpoints Reference
 
-* Method: POST
-* Description: Bot can send the message on whatsapp.
+| Method | Route | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Health check to verify the API is running. |
+| `POST` | `/chat` | Standard REST API to chat with the bot. Requires JSON payload with `user_id` and `message`. |
+| `POST` | `/whatsapp` | The Twilio Webhook URL to process incoming WhatsApp messages automatically. |
+| `GET` | `/history/<user_id>` | Retrieves the entire conversation history for a specific user. |
+| `POST`| `/clear/<user_id>` | Clears the memory/history of a specific user. |
+| `GET` | `/analytics/<user_id>` | Retrieves messaging statistics for a specific user. |
+| `GET` | `/analytics` | Retrieves global statistics (total users, total messages across the bot). |
+| `GET` | `/export/<user_id>` | Downloads a `.json` file containing the user's conversation history. |
+| `POST`| `/send_whatsapp` | Proactively trigger a WhatsApp message to a user. Requires `to_number` and `message`. |
 
-## Tech used
+---
 
-* Python
-* OpenAI library
-* OpenRouter API
-* python-dotenv
-* os
-* Flask
-* Railway
-* Twilio
+## 🎓 What I Learned Building This
+
+- Managing sensitive credentials using `.env` environment variables.
+- How REST APIs function (distinguishing between `GET` and `POST` methods).
+- Utilizing the OpenAI Python library with compatible endpoints (like Gemini).
+- Engineering conversation memory for Large Language Models.
+- Parsing and returning dynamic files (JSON data to bytes) for client downloads.
+- Integrating Twilio's TwiML and Account SID/Auth Tokens to bridge Python to WhatsApp.
+- Preparing a Flask application for production deployment using `gunicorn` and `Procfile`.

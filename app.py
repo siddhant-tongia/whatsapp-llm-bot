@@ -12,10 +12,10 @@ load_dotenv()
 # create flask app
 app = Flask(__name__)
 
-# create openai client using env variable
+# create Gemini client using OpenAI compatibility and environment variable
 client = OpenAI(
     api_key = os.getenv("API_KEY"),
-    base_url = "https://openrouter.ai/api/v1"
+    base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 # empty conversations dictionary
 conversations = {}
@@ -89,7 +89,7 @@ def user_info():
     try:
         full_messages = [{"role": "system", "content": system_prompt}] + conversations[user_id]["messages"]
         response = client.chat.completions.create(
-            model="openai/gpt-3.5-turbo",
+            model="gemini-1.5-flash",
             messages = full_messages
         )
         # append assistant response to their list
@@ -135,7 +135,7 @@ def whatsapp_webhook():
     try:
         full_messages = [{"role": "system", "content": system_prompt}] + conversations[user_id]["messages"]
         response = client.chat.completions.create(
-            model="openai/gpt-3.5-turbo",
+            model="gemini-1.5-flash",
             messages = full_messages
         )
         # append assistant response to their list

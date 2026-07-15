@@ -1,1 +1,7 @@
 .env
+__pycache__/
+*.pyc
+chat_history.json
+tempCodeRunnerFile.py
+venv/
+.venv/

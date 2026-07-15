@@ -1,10 +1,18 @@
 [
     {
         "role": "user",
-        "content": "hello"
+        "content": "Hii"
     },
     {
         "role": "assistant",
         "content": "Hello! How can I assist you today?"
+    },
+    {
+        "role": "user",
+        "content": "I want to know about python language "
+    },
+    {
+        "role": "assistant",
+        "content": "Python is a popular high-level programming language known for its simplicity and readability. It is widely used for various purposes, such as web development, data analysis, artificial intelligence, and more. Some key features of Python include:\n\n1. Easy to learn and use: Python is known for its clean syntax and readability, making it a great choice for beginners and experienced programmers alike.\n\n2. Versatile: Python can be used for a wide range of applications, from simple scripting to complex web applications and scientific computing.\n\n3. Large standard library: Python comes with a comprehensive standard library that provides support for many common tasks, reducing the need for external libraries.\n\n4. Open-source: Python is open-source, which means that it is free to use and can be modified and distributed by anyone.\n\n5. Community support: Python has a large and active community of developers who contribute to its development, provide support, and create a wealth of resources and libraries.\n\nOverall, Python is a powerful and flexible language that is well-suited for a variety of programming tasks. If you're interested in learning more about Python, there are plenty of resources available online to help you get started. Let me know if you have any specific questions about Python!"
     }
 ]
