@@ -78,19 +78,60 @@ python app.py
 
 ---
 
+## 🔄 System Architecture & Message Flow
+
+When a user sends a message on WhatsApp, it triggers a chain of events spanning Twilio, your Flask backend, and the Gemini API.
+
+```mermaid
+sequenceDiagram
+    actor User as 📱 WhatsApp User
+    participant Twilio as 🌐 Twilio Webhook
+    participant Flask as 🐍 Flask Backend (/whatsapp)
+    participant Memory as 🧠 Memory Dictionary
+    participant LLM as 🤖 Gemini LLM API
+
+    User->>Twilio: Sends Message (e.g. "What are the fees?")
+    Twilio->>Flask: POST /whatsapp (Body, From)
+    
+    Flask->>Memory: Check if user exists
+    alt New User
+        Flask->>Memory: Create new session & assign business_type
+    end
+    Flask->>Memory: Append user message to history
+    
+    Flask->>LLM: Send Payload (System Prompt + History)
+    LLM-->>Flask: Generated AI Response
+    
+    Flask->>Memory: Append AI response to history
+    Flask->>Twilio: Return TwiML (XML Response)
+    Twilio->>User: Delivers WhatsApp Message
+```
+
+### ⚙️ How the Code Works Step-by-Step
+
+1. **Incoming Message Receiver (`/whatsapp`)**: Twilio forwards the WhatsApp message to the Flask API. The code extracts `user_input` and `user_id`.
+2. **Memory & Context Management**: The app checks the global `conversations = {}` dictionary. If the user is new, it initializes a blank state. Their message is appended.
+3. **LLM Generation**: The system attaches the **System Prompt** (rules and business knowledge) to the conversation. The complete history is sent to Google's Gemini-1.5-Flash model.
+4. **Outgoing Dispatch**: The AI's reply is appended to the dictionary and returned as a Twilio `MessagingResponse` (TwiML).
+
+> **Note on State:** The current architecture is **stateful in-memory**, meaning if the Flask server restarts, the conversation history is lost. For production scaling, consider replacing the `conversations` dictionary with a database like Redis or MongoDB.
+
+---
+
 ## 🛣️ API Endpoints Reference
 
-| Method | Route | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Health check to verify the API is running. |
-| `POST` | `/chat` | Standard REST API to chat with the bot. Requires JSON payload with `user_id` and `message`. |
-| `POST` | `/whatsapp` | The Twilio Webhook URL to process incoming WhatsApp messages automatically. |
-| `GET` | `/history/<user_id>` | Retrieves the entire conversation history for a specific user. |
-| `POST`| `/clear/<user_id>` | Clears the memory/history of a specific user. |
-| `GET` | `/analytics/<user_id>` | Retrieves messaging statistics for a specific user. |
-| `GET` | `/analytics` | Retrieves global statistics (total users, total messages across the bot). |
-| `GET` | `/export/<user_id>` | Downloads a `.json` file containing the user's conversation history. |
-| `POST`| `/send_whatsapp` | Proactively trigger a WhatsApp message to a user. Requires `to_number` and `message`. |
+Beyond the main WhatsApp integration, `app.py` exposes several auxiliary endpoints to manage the bot's memory and analytics.
+
+| Endpoint | Method | Purpose | Key Operations |
+| :--- | :--- | :--- | :--- |
+| `/whatsapp` | `POST` | Primary entrypoint for WhatsApp messages. | Extracts `Body` & `From`, manages context, calls LLM, and returns TwiML string to Twilio. |
+| `/chat` | `POST` | Standard REST API alternative to WhatsApp. | Accepts JSON `{'user_id', 'message', 'business_type'}`, processes LLM logic, returns JSON response. |
+| `/history/<id>` | `GET` | Retrieve conversation history. | Looks up `user_id` in the `conversations` dictionary and returns message list. |
+| `/clear/<id>` | `POST` | Delete user memory context. | Resets the `"messages"` array for a specific user to `[]`. |
+| `/analytics/<id>`| `GET` | Individual user stats. | Counts total user messages and total conversation turns for a specific user. |
+| `/analytics` | `GET` | Global application stats. | Aggregates data across all active users in the memory dictionary. |
+| `/export/<id>` | `GET` | Download chat history. | Converts a user's message array into a JSON file (`BytesIO`) and triggers a file download for the client. |
+| `/send_whatsapp` | `POST` | Proactive outbound messaging. | Uses the Twilio Client API (`twilio_client.messages.create`) to initiate a conversation with a user directly instead of waiting for a webhook. |
 
 ---
 
